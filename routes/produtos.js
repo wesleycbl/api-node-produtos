@@ -1,3 +1,4 @@
+const { response } = require("express");
 const express = require("express");
 const router = express.Router();
 const mysql = require("../mysql").pool;
@@ -7,11 +8,28 @@ router.get("/", (req, res, next) => {
     if (error) {
       return res.status(500).send({ error: error });
     }
-    conn.query("SELECT * FROM produtos;", (error, result, fields) => {
+    conn.query("SELECT * FROM produtos;", 
+    (error, result, fields) => {
       if (error) {
         return res.status(500).send({ error: error });
       }
-      return res.status(200).send({ response: result });
+      const response = {
+          quantidade: result.length,
+          produtos: result.map(prod =>{
+              return {
+                  id_produto: prod.id_produto,
+                  nome: prod.nome,
+                  preco: prod.preco,
+                  request: {
+                      tipo: 'GET',
+                      descricao: '',
+                      url:'http://localhost:300/produtos/' + prod.id_produto
+                  }
+              }
+          })
+      }
+
+      return res.status(200).send({ response: response });
     });
   });
 });
